@@ -1,0 +1,11 @@
+# [System](../api/system.html)::sleep
+
+    void sleep(const Time::Duration& dur);
+
+Sleeps for `dur`.
+
+## Parameters
+`dur` - a duration to sleep for
+
+## Return value
+(none)
