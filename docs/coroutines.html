@@ -145,7 +145,7 @@
 #define coyield(x)  do { _state = __LINE__; return x; case __LINE__:; } while(0)
 #define coreturn(x) do { _state = 0; return x; } while(0)
 #define cofinish    default: _state = 0; _loop = true; }} return {}
-#define cofinishv    default: _state = 0; _loop = true; }} return
+#define cofinishv   default: _state = 0; _loop = true; }} return
 
 template &lt;typename Return, typename... _Args&gt;
 class Coroutine
