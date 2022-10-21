@@ -139,11 +139,9 @@
 <div style="break-before: page; page-break-before: always;"></div><h1 id="gameobjects"><a class="header" href="#gameobjects">GameObjects</a></h1>
 <div style="break-before: page; page-break-before: always;"></div><h1 id="object-tagging"><a class="header" href="#object-tagging">Object Tagging</a></h1>
 <p>An object's properties are defined by customisable tags - for example, to make the renderer draw an object, you add a <code>renderableTag</code> and a <code>spriteTag</code>, then supply a sprite to the <code>spriteTag</code>.</p>
-<p>These tags are similar to components in an entity component system, but are much more lightweight and easier to manage, as each one holds the same number of variables, a void pointer (<code>void*</code>), and an integer id (<code>uint16_t</code>).
+<p>These tags are similar to components in an entity component system, but are much more lightweight and easier to manage, as each one holds the same number of variables, a void pointer (<code>void*</code>), and an integer id (<code>uint8_t</code>).
 Due to padding, there would be 6 bytes of unused space on each tag, so there are two extra variables (a <code>uint16_t</code> and <code>uint8_t</code>) that can optionally hold additional data.
 This means that all tag objects are the same size (16 bytes), so they can be stored directly inside a <code>GameObject</code> without the need for pointers, unlike ECS, which would require polymorphism, so each object would need a pointer.</p>
-<p>All values from <code>61439</code> to <code>65535</code> are reserved for use within the engine, values from <code>0</code> to <code>61438</code> are available for user definition.
-Another property of tags is that unlike other engines, you are not forced to have a transform on each object (which means it is not inserted into any quadtree, and acts as a global object)</p>
 <p>The following implementation would conform to the above specification:</p>
 <pre><code>struct Tag
 {
