@@ -144,19 +144,20 @@ Another property of tags is that unlike other engines, you are not forced to hav
 <p>The following implementation would conform to the above specification:</p>
 <pre><code>struct Tag
 {
-    Tag(uint16_t id)
+    Tag(uint8_t id)
     {
         this-&gt;id = id;
     }
 
     void* data;
-    uint16_t id; // this should appear as const to other classes
-    // consider implementing a const_proxy class using friends and operator overloads
     struct
-    {
-        uint16_t a;
-        uint8_t b;
+    {   // consider using __attribute__((packed)) to make this struct exactly 7 bytes
+        uint32_t a;
+        uint16_t b;
+        uint8_t c;
     } unused;
+    uint8_t id; // this should appear as const to other classes
+    // consider implementing a const_proxy class using friends and operator overloads
 };
 </code></pre>
 <h2 id="built-in-tags"><a class="header" href="#built-in-tags">Built In Tags</a></h2>
