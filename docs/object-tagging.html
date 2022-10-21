@@ -150,7 +150,7 @@ This means that all tag objects are the same size (16 bytes), so they can be sto
     void* array;
     struct
     {   // consider using __attribute__((packed)) to make this struct exactly 7 bytes
-        uint32_t a;
+        uint32_t element_size_bytes;
         uint16_t array_size;
         uint8_t flags;
     } data;
