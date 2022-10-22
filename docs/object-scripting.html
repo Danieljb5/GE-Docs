@@ -135,7 +135,7 @@
                 <div id="content" class="content">
                     <main>
                         <h1 id="scripting"><a class="header" href="#scripting">Scripting</a></h1>
-<p>When adding custom code to objects, there are two options - add a <code>scriptfunctionTag</code> and supply a function pointer, or add a <code>scriptobjectTag</code> and supply a class that inherits <code>ScriptObject</code>.</p>
+<p>All object hold a structure that allows user scripts to be added and run.</p>
 <h2 id="runfunction"><a class="header" href="#runfunction">runFunction</a></h2>
 <p>The supplied function must match the correct signature - it must return <code>void</code> and it must accept a reference to a <code>GameObject</code>.
 An example function:</p>
