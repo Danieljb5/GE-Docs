@@ -259,7 +259,7 @@ int main()
 <p>The arena allocator is very simple in concept. You have a large array of bytes available, and an offset within the array. To allocate an object, you return the array pointer plus the offset, and increase the offset by the size of the object. You cannot free individual items, but instead you clear the whole arena at once.</p>
 <p>In reality, memory arenas become slightly more complex when object-oriented programming is introduced. This is why the engine exposes two arena allocators:</p>
 <ul>
-<li><code>arena</code> - </li>
+<li><code>arena</code> - uses extra memory to store type information for each allocation, and then </li>
 <li><code>fast_arena</code></li>
 </ul>
 <div style="break-before: page; page-break-before: always;"></div><h1 id="api"><a class="header" href="#api">API</a></h1>
