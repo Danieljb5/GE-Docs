@@ -285,7 +285,7 @@ int main()
 <p>Below are the member functions of the pool allocator:</p>
 <ul>
 <li><code>pool(const size_t size)</code> - constructs the pool, and calls the constructor of the memory arena, passing <code>size</code> as the argument</li>
-<li><code>T* allocate(const size_t align = DEFAULT_ALIGNMENT)</code> - allocates a new object, will use the default alignment if one is not provided</li>
+<li><code>T* allocate(const size_t align = DEFAULT_ALIGNMENT)</code> - allocates a new object, calling its constructor, will use the default alignment if one is not provided</li>
 <li><code>void free(T* t)</code> - deallocates an object, calling its destructor and </li>
 </ul>
 <div style="break-before: page; page-break-before: always;"></div><h1 id="api"><a class="header" href="#api">API</a></h1>
