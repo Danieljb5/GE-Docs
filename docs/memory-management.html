@@ -173,7 +173,7 @@
 <ul>
 <li><code>pool(const size_t size)</code> - constructs the pool, and calls the constructor of the memory arena, passing <code>size</code> as the argument</li>
 <li><code>T* allocate(const size_t align = DEFAULT_ALIGNMENT)</code> - allocates a new object, calling its constructor, will use the default alignment if one is not provided</li>
-<li><code>void free(T* t)</code> - deallocates an object, calling its destructor and plac</li>
+<li><code>void free(T* t)</code> - deallocates an object, calling its destructor and places it on the free'd </li>
 </ul>
 
                     </main>
