@@ -277,7 +277,7 @@ int main()
 <li><code>stack(const size_t size)</code> - constructs the stack, allocating an internal buffer of <code>size</code> bytes</li>
 <li><code>T* allocate()</code> - allocates an object of type <code>T</code></li>
 <li><code>T* allocate(const size_t align)</code> - allocates an object of type <code>T</code> with custom alignment</li>
-<li><code>void free</code> - frees an object and calls its destructor. This deallocates anything above this object, but does not call the destructors, as i</li>
+<li><code>void free</code> - frees an object and calls its destructor. This deallocates anything above this object, but does not call the destructors, as it is intended</li>
 </ul>
 <div style="break-before: page; page-break-before: always;"></div><h1 id="api"><a class="header" href="#api">API</a></h1>
 <p>The API exposes several classes that allow the user to communicate with the engine.</p>
