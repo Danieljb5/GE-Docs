@@ -260,7 +260,7 @@ int main()
 <p>In reality, memory arenas become slightly more complex when object-oriented programming is introduced. This is why the engine exposes two arena allocators:</p>
 <ul>
 <li><code>arena</code> - uses extra memory to store type information for each allocation, allowing constructors and destructors to be called when required</li>
-<li><code>fast_arena</code> - a more barebones approach that </li>
+<li><code>fast_arena</code> - a more barebones approach that does not call destructors, so is more appropriate for primitives, or -style</li>
 </ul>
 <div style="break-before: page; page-break-before: always;"></div><h1 id="api"><a class="header" href="#api">API</a></h1>
 <p>The API exposes several classes that allow the user to communicate with the engine.</p>
