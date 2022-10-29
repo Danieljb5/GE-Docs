@@ -160,7 +160,7 @@
 <p>A stack allocator is very similar to an arena allocator, with a few key differences that change its use. When a new element is pushed, a header is added to the storage that provides enough information so that you can pop items off of the stack, rather than only being able to clear it. This has a very slight size and speed overhead, but can be much more useful when used correctly.</p>
 <p>Below are the member functions of the stack allocator:</p>
 <ul>
-<li><code>stack</code> - constructs the stack, allocating an internal buffer of <code>size</code> bytes</li>
+<li><code>stack(const size_t size)</code> - constructs the stack, allocating an internal buffer of <code>size</code> bytes</li>
 <li><code>T* allocate</code> - allocates an object of type <code>T</code></li>
 <li><code>void free</code></li>
 </ul>
