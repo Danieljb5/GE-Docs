@@ -164,7 +164,7 @@
 <li><code>stack(const size_t size)</code> - constructs the stack, allocating an internal buffer of <code>size</code> bytes</li>
 <li><code>T* allocate()</code> - allocates an object of type <code>T</code></li>
 <li><code>T* allocate(const size_t align)</code> - allocates an object of type <code>T</code> with custom alignment</li>
-<li><code>void free</code> - frees an object and calls its destructor. This object must be at the </li>
+<li><code>void free</code> - frees an object and calls its destructor. This object must be at the top of the stack, or it will deallocate </li>
 </ul>
 
                     </main>
