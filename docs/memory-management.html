@@ -146,8 +146,8 @@
 <p>The arena allocator is very simple in concept. You have a large array of bytes available, and an offset within the array. To allocate an object, you return the array pointer plus the offset, and increase the offset by the size of the object. You cannot free individual items, but instead you clear the whole arena at once.</p>
 <p>In reality, memory arenas become slightly more complex when object-oriented programming is introduced. This is why the engine exposes two arena allocators:</p>
 <ul>
-<li><code>arena</code> - uses extra memory to store type information for each allocation, allowing constructors and destructors to be called when required</li>
-<li><code>fast_arena</code> - a more barebones approach that does not call destructors, so is more appropriate for primitives, or -style</li>
+<li><code>arena</code> - uses extra memory to store type information for each allocation, allowing constructors and destructors to be called when required.</li>
+<li><code>fast_arena</code> - a more barebones approach that does not call destructors, so is more appropriate for primitives, or C-style programming.</li>
 </ul>
 
                     </main>
