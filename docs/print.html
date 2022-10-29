@@ -265,7 +265,7 @@ int main()
 </ul>
 <p>Both allocators expose the same functions, which are listed below:</p>
 <ul>
-<li><code>arena()</code> / <code>fast_arena</code> - constructs the arena, accepts a size, which becomes the size of the internal buffer</li>
+<li><code>arena()</code> / <code>fast_arena(co)</code> - constructs the arena, accepts a size, which becomes the size of the internal buffer</li>
 <li><code>T* allocate</code> - allocates an object of type <code>T</code>, in <code>arena</code> a struct containing type information is pushed to a seperate stack</li>
 <li><code>void clear</code> - clears the memory arena, in <code>fast_arena</code>, this simply resets the offset, in <code>arena</code>, it pops each element from the seconds stack and uses the type information to call destructors correctly</li>
 </ul>
