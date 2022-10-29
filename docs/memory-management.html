@@ -165,7 +165,7 @@
 <li><code>T* allocate()</code> - allocates an object of type <code>T</code></li>
 <li><code>T* allocate(const size_t align)</code> - allocates an object of type <code>T</code> with custom alignment</li>
 <li><code>void free(T* t)</code> - frees an object and calls its destructor. This deallocates anything above this object, but does not call the destructors, as it is intended to be used similarly to a pop operation</li>
-<li><code>void clear()</code> - clears the stack, this does not c</li>
+<li><code>void clear()</code> - clears the stack, this does not call destructors as type information is not available</li>
 </ul>
 
                     </main>
