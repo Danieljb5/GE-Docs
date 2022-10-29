@@ -171,7 +171,7 @@
 <p>The two above entries describe allocators that allow the user to allocate arbitrarily-sized objects, but only support linear allocation. The pool allocator only allows allocations of the same size, but can support deallocating any object in the pool. This is achieved by first using the arena allocator. When an object is deallocated, it's pointer is pushed to a linked list of free'd objects. When allocating, the list is checked first, and the pointer can be removed from the list and reinitialised, but if the list is empty, it uses the arena allocator.</p>
 <p>Below are the member functions of the pool allocator:</p>
 <ul>
-<li><code>pool(const size_t size)</code> - constructs the pool, and calls the constructor of the memory arena with <code>size</code></li>
+<li><code>pool(const size_t size)</code> - constructs the pool, and calls the constructor of the memory arena, passing <code>size</code></li>
 </ul>
 
                     </main>
