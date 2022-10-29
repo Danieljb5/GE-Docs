@@ -144,7 +144,7 @@
 <p>With that said, let's look at the first two allocators</p>
 <h2 id="the-arena-allocator"><a class="header" href="#the-arena-allocator">The Arena Allocator</a></h2>
 <p>The arena allocator is very simple in concept. You have a large array of bytes available, and an offset within the array. To allocate an object, you return the array pointer plus the offset, and increase the offset by the size of the object. You cannot free individual items, but instead you clear the whole arena at once.</p>
-<p>In reality, memory arenas become slightly more complex when object-oriented programming is introduced. This is why the engine exposes two </p>
+<p>In reality, memory arenas become slightly more complex when object-oriented programming is introduced. This is why the engine exposes two arena allocators</p>
 
                     </main>
 
