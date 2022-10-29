@@ -269,7 +269,7 @@ int main()
 <li><code>void clear</code> - clears the memory arena, in <code>fast_arena</code>, this simply resets the offset, in <code>arena</code>, it pops each element from the seconds stack and uses the type information to call destructors correctly</li>
 </ul>
 <h2 id="the-stack-allocator"><a class="header" href="#the-stack-allocator">The Stack Allocator</a></h2>
-<p>A stack allocator is very similar to an arena allocator, with a few key differences that change its use. When a new element is pushed, a header is added to the storage that provides enough information so that you can pop items off of the stack, rather than only being able to clear it. This has a very slight </p>
+<p>A stack allocator is very similar to an arena allocator, with a few key differences that change its use. When a new element is pushed, a header is added to the storage that provides enough information so that you can pop items off of the stack, rather than only being able to clear it. This has a very slight size and speed overhead, but </p>
 <div style="break-before: page; page-break-before: always;"></div><h1 id="api"><a class="header" href="#api">API</a></h1>
 <p>The API exposes several classes that allow the user to communicate with the engine.</p>
 <ol>
