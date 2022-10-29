@@ -153,7 +153,7 @@
 <p>Both allocators expose the same functions, which are listed below:</p>
 <ul>
 <li><code>arena(const size_t size)</code> / <code>fast_arena(const size_t size)</code> - constructs the arena, allocating an internal buffer of <code>size</code> bytes</li>
-<li><code>T* allocate(</code> - allocates an object of type <code>T</code>, in <code>arena</code> a struct containing type information is pushed to a seperate stack</li>
+<li><code>T* allocate()</code> - allocates an object of type <code>T</code>, in <code>arena</code> a struct containing type information is pushed to a seperate stack</li>
 <li><code>void clear</code> - clears the memory arena, in <code>fast_arena</code>, this simply resets the offset, in <code>arena</code>, it pops each element from the seconds stack and uses the type information to call destructors correctly</li>
 </ul>
 <h2 id="the-stack-allocator"><a class="header" href="#the-stack-allocator">The Stack Allocator</a></h2>
