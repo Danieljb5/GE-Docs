@@ -76,7 +76,7 @@
 
         <nav id="sidebar" class="sidebar" aria-label="Table of contents">
             <div class="sidebar-scrollbox">
-                <ol class="chapter"><li class="chapter-item expanded affix "><a href="index.html">Introduction</a></li><li class="spacer"></li><li class="chapter-item expanded "><a href="core.html"><strong aria-hidden="true">1.</strong> Core</a></li><li><ol class="section"><li class="chapter-item expanded "><a href="core/coroutines.html"><strong aria-hidden="true">1.1.</strong> Coroutines</a></li><li class="chapter-item expanded "><a href="memory-management.html"><strong aria-hidden="true">1.2.</strong> Memory Management</a></li></ol></li><li class="chapter-item expanded "><a href="api-ref.html"><strong aria-hidden="true">2.</strong> API</a></li><li><ol class="section"><li class="chapter-item expanded "><a href="api/system.html"><strong aria-hidden="true">2.1.</strong> System</a></li><li class="chapter-item expanded "><a href="api/time.html"><strong aria-hidden="true">2.2.</strong> Time</a></li><li class="chapter-item expanded "><a href="api/audio.html"><strong aria-hidden="true">2.3.</strong> Audio</a></li></ol></li><li class="chapter-item expanded "><a href="api/system/exit.html">ㅤ</a></li><li class="chapter-item expanded affix "><a href="api/system/sleep.html">ㅤ</a></li><li class="chapter-item expanded affix "><a href="api/time/duration.html">ㅤ</a></li><li class="chapter-item expanded affix "><a href="api/time/duration/constructor.html">ㅤ</a></li><li class="chapter-item expanded affix "><a href="api/audio/playsound.html">ㅤ</a></li><li class="chapter-item expanded affix "><a href="api/audio/playmusic.html">ㅤ</a></li></ol>
+                <ol class="chapter"><li class="chapter-item expanded affix "><a href="index.html">Introduction</a></li><li class="spacer"></li><li class="chapter-item expanded "><a href="core.html"><strong aria-hidden="true">1.</strong> Core</a></li><li><ol class="section"><li class="chapter-item expanded "><a href="core/coroutines.html"><strong aria-hidden="true">1.1.</strong> Coroutines</a></li><li class="chapter-item expanded "><a href="core/memory-management.html"><strong aria-hidden="true">1.2.</strong> Memory Management</a></li></ol></li><li class="chapter-item expanded "><a href="api-ref.html"><strong aria-hidden="true">2.</strong> API</a></li><li><ol class="section"><li class="chapter-item expanded "><a href="api/system.html"><strong aria-hidden="true">2.1.</strong> System</a></li><li class="chapter-item expanded "><a href="api/time.html"><strong aria-hidden="true">2.2.</strong> Time</a></li><li class="chapter-item expanded "><a href="api/audio.html"><strong aria-hidden="true">2.3.</strong> Audio</a></li></ol></li><li class="chapter-item expanded "><a href="api/system/exit.html">ㅤ</a></li><li class="chapter-item expanded affix "><a href="api/system/sleep.html">ㅤ</a></li><li class="chapter-item expanded affix "><a href="api/time/duration.html">ㅤ</a></li><li class="chapter-item expanded affix "><a href="api/time/duration/constructor.html">ㅤ</a></li><li class="chapter-item expanded affix "><a href="api/audio/playsound.html">ㅤ</a></li><li class="chapter-item expanded affix "><a href="api/audio/playmusic.html">ㅤ</a></li></ol>
             </div>
             <div id="sidebar-resize-handle" class="sidebar-resize-handle"></div>
         </nav>
@@ -217,6 +217,54 @@ int main()
 <p>Also note that the coroutine implements the member function <code>run</code>. This is the virtual function provided by the base class, and it must match the coroutine's template. In this example, the template arguments are <code>&lt;int&gt;</code>, so it returns <code>int</code> and has no parameters, so <code>run</code> also must return <code>int</code> and have no parameters. If the coroutine had the parameters <code>&lt;void, int, float&gt;</code>, <code>run</code> would have a signature similar to the following:</p>
 <p><code>void run(int {name}, float {name}) {...}</code></p>
 <div style="break-before: page; page-break-before: always;"></div><h1 id="memory-management"><a class="header" href="#memory-management">Memory Management</a></h1>
+<p>Everyone's favourite topic to argue about, memory management. This page will go over the custom memory allocators the engine uses, why, and most importantly, what they do.</p>
+<p>First of all, why?</p>
+<p>The standard library implementation for allocating heap memory is to use <code>malloc</code> or <code>new</code> to allocate memory, and <code>free</code> or <code>delete</code> to deallocate memory. These functions are designed to have few constraints, which can lead to problems such as memory leaks, double frees, segmentation violation, and a mess of object lifetime management.</p>
+<p>We can't just replace these implementations, as they do have their uses (and are even used in the solution to access the heap), but we can provide alternatives that can help during certain situations. The engine's implementation uses <code>new</code> to allocate a large array of bytes, and then allocates objects into that array, allowing better control over memory, and even object lifetimes, allowing the user to deallocate multiple arbitrary objects at once, and without worrying about memory leaks, as all of the objects allocated have the same maximum lifetime as the array.</p>
+<p>Below are some sources, which explain each allocator as well as provide basic implementation details:</p>
+<p><a href="https://www.gingerbill.org/article/2019/02/01/memory-allocation-strategies-001/">Memory Allocation Strategies - Part 1</a></p>
+<p><a href="https://www.gingerbill.org/article/2019/02/08/memory-allocation-strategies-002/">Memory Allocation Strategies - Part 2</a></p>
+<p><a href="https://www.gingerbill.org/article/2019/02/15/memory-allocation-strategies-003/">Memory Allocation Strategies - Part 3</a></p>
+<p><a href="https://www.rfleury.com/p/untangling-lifetimes-the-arena-allocator">Untangling Lifetimes: The Arena Allocator</a></p>
+<p>With that said, let's look at the allocators.</p>
+<h2 id="the-arena-allocator"><a class="header" href="#the-arena-allocator">The Arena Allocator</a></h2>
+<p>Also known as a linear allocator, the arena allocator is very simple in concept. You have a large array of bytes available, and an offset within the array. To allocate an object, you return the array pointer plus the offset, and increase the offset by the size of the object. You cannot free individual items, but instead you clear the whole arena at once.</p>
+<p>Due to the way that computers read memory, the engine's implementation of arena allocation gains performance at the cost of space. Computers read multiple bytes of memory at once, but can only do it at regular intervals. This is known as <a href="https://en.wikipedia.org/wiki/Data_structure_alignment">n-byte alignment</a>, and allows the CPU to read memory faster. This means that we must pad each allocation to make sure it has the correct alignment - for example, if we allocate a single byte, we must pad the next allocation to align it.</p>
+<p>In reality, memory arenas become slightly more complex when object-oriented programming is introduced. This is why the engine exposes two arena allocators:</p>
+<ul>
+<li><code>arena</code> - uses extra memory to store type information for each allocation, allowing constructors and destructors to be called when required.</li>
+<li><code>fast_arena</code> - a more barebones approach that does not call destructors, so is more appropriate for primitives, or C-style programming.</li>
+</ul>
+<p>Both allocators expose the same functions, which are listed below:</p>
+<ul>
+<li><code>arena(const size_t size)</code> / <code>fast_arena(const size_t size)</code> - constructs the arena, allocating an internal buffer of <code>size</code> bytes</li>
+<li><code>T* allocate()</code> - allocates an object of type <code>T</code>, in <code>arena</code> a struct containing type information is pushed to a seperate stack</li>
+<li><code>T* allocate(const size_t aligh)</code> - allocates an object of type <code>T</code> with a custom alignment, in <code>arena</code> a struct containing type information is pushed to a seperate stack</li>
+<li><code>void clear()</code> - clears the memory arena, in <code>fast_arena</code>, this simply resets the offset, in <code>arena</code>, it pops each element from the seconds stack and uses the type information to call destructors correctly</li>
+</ul>
+<h2 id="the-stack-allocator"><a class="header" href="#the-stack-allocator">The Stack Allocator</a></h2>
+<p>A stack allocator is very similar to an arena allocator, with a few key differences that change its use. When a new element is pushed, a header is added to the storage that provides enough information so that you can pop items off of the stack, rather than only being able to clear it. This has a very slight size and speed overhead, but can be much more useful when used correctly.</p>
+<p>Below are the member functions of the stack allocator:</p>
+<ul>
+<li><code>stack(const size_t size)</code> - constructs the stack, allocating an internal buffer of <code>size</code> bytes</li>
+<li><code>T* allocate()</code> - allocates an object of type <code>T</code></li>
+<li><code>T* allocate(const size_t align)</code> - allocates an object of type <code>T</code> with custom alignment</li>
+<li><code>void free(T* t)</code> - frees an object and calls its destructor. This deallocates anything above this object, but does not call the destructors, as it is intended to be used similarly to a pop operation</li>
+<li><code>void clear()</code> - clears the stack, this does not call destructors as type information is not available</li>
+</ul>
+<h2 id="the-pool-allocator"><a class="header" href="#the-pool-allocator">The Pool Allocator</a></h2>
+<p>The two above entries describe allocators that allow the user to allocate arbitrarily-sized objects, but only support linear allocation. The pool allocator only allows allocations of the same size, but can support deallocating any object in the pool. This is achieved by first using the arena allocator. When an object is deallocated, it's pointer is pushed to a linked list of free'd objects. When allocating, the list is checked first, and the pointer can be removed from the list and reinitialised, but if the list is empty, it uses the arena allocator.</p>
+<p>Below are the member functions of the pool allocator:</p>
+<ul>
+<li><code>pool(const size_t size)</code> - constructs the pool, and calls the constructor of the memory arena, passing <code>size</code> as the argument</li>
+<li><code>T* allocate(const size_t align = DEFAULT_ALIGNMENT)</code> - allocates a new object, calling its constructor, will use the default alignment if one is not provided</li>
+<li><code>void free(T* t)</code> - deallocates an object, calling its destructor and places it on the free'd list</li>
+<li><code>void clear()</code> - clears the buffer, does not call any destructors</li>
+</ul>
+<h2 id="implementation-details"><a class="header" href="#implementation-details">Implementation Details</a></h2>
+<p>Below are the files relevant to the memory allocators:</p>
+<p><a href="https://github.com/Danieljb5/Game-Engine/blob/main/include/memory.hpp">memory.hpp</a></p>
+<p><a href="https://github.com/Danieljb5/Game-Engine/blob/main/src/memory.cpp">memory.cpp</a></p>
 <div style="break-before: page; page-break-before: always;"></div><h1 id="api"><a class="header" href="#api">API</a></h1>
 <p>The API exposes several classes that allow the user to communicate with the engine.</p>
 <ol>
