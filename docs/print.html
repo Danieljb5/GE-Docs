@@ -178,44 +178,48 @@ protected:
 <p>The macro <code>coyield(x)</code> is used to pause the function and return a value</p>
 <p>The macro <code>coreturn(x)</code> is used to return from the function and reset <code>_state</code>, allowing the function to be reused</p>
 <p>below is an example of a coroutine:</p>
-<pre><code>#include &lt;system.hpp&gt;
-#include &lt;iostream&gt;
+<pre><code>    #include &lt;system.hpp&gt;
+    #include &lt;iostream&gt;
 
-class example_coroutine : public Coroutine&lt;int&gt;
-{   // can accept further template args as coroutine parameters
-protected:
-    int run()
-    {
-        cobegin;
-
-        for(i = 0; i &lt; 10; i++)
+    class example_coroutine : public Coroutine&lt;int&gt;
+    {   // can accept further template args as coroutine parameters
+    protected:
+        int run()
         {
-            coyield(i); // retume control to main and return i
+            cobegin;
+
+            for(i = 0; i &lt; 10; i++)
+            {
+                coyield(i); // retume control to main and return i
+            }
+
+            cofinish;
         }
 
-        cofinish;
-    }
+        int i = 0;
+    };
 
-    int i = 0;
-};
-
-int main()
-{
-    example_coroutine ec;
-
-    for(int i = 0; i &lt; 10; i++)
+    int main()
     {
-        std::cout &lt;&lt; ec() &lt;&lt; &quot;\n&quot;;
-        System::sleep(50_ms);
+        example_coroutine ec;
+
+        for(int i = 0; i &lt; 10; i++)
+        {
+            std::cout &lt;&lt; ec() &lt;&lt; &quot;\n&quot;;
+            System::sleep(50_ms);
+        }
+
+        return 0;
     }
 
-    return 0;
-}
+In the above example, `main` calls the coroutine `ec`, and after increasing `i` by `1`, `ec` returns control to `main`, where the application sleeps for `50ms`. This repeats, until the coroutine finishes, allowing control to switch between `main` and `ec` without locks.
+
+Note that all variables that need to persist between calling `yield()` and the function resuming must be member variables, and initialised directly after `cobegin`.
+
+Also note that the coroutine implements the member function `run`. This is the virtual function provided by the base class, and it must match the coroutine's template. In this example, the template arguments are `&lt;int&gt;`, so it returns `int` and has no parameters, so `run` also must return `int` and have no parameters. If the coroutine had the parameters `&lt;void, int, float&gt;`, `run` would have a signature similar to the following:
+
+`void run(int {name}, float {name}) {...}`
 </code></pre>
-<p>In the above example, <code>main</code> calls the coroutine <code>ec</code>, and after increasing <code>i</code> by <code>1</code>, <code>ec</code> returns control to <code>main</code>, where the application sleeps for <code>50ms</code>. This repeats, until the coroutine finishes, allowing control to switch between <code>main</code> and <code>ec</code> without locks.</p>
-<p>Note that all variables that need to persist between calling <code>yield()</code> and the function resuming must be member variables, and initialised directly after <code>cobegin</code>.</p>
-<p>Also note that the coroutine implements the member function <code>run</code>. This is the virtual function provided by the base class, and it must match the coroutine's template. In this example, the template arguments are <code>&lt;int&gt;</code>, so it returns <code>int</code> and has no parameters, so <code>run</code> also must return <code>int</code> and have no parameters. If the coroutine had the parameters <code>&lt;void, int, float&gt;</code>, <code>run</code> would have a signature similar to the following:</p>
-<p><code>void run(int {name}, float {name}) {...}</code></p>
 <div style="break-before: page; page-break-before: always;"></div><h1 id="memory-management"><a class="header" href="#memory-management">Memory Management</a></h1>
 <p>Everyone's favourite topic to argue about, memory management. This page will go over the custom memory allocators the engine uses, why, and most importantly, what they do.</p>
 <p>First of all, why?</p>
