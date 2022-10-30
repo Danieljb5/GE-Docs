@@ -76,7 +76,7 @@
 
         <nav id="sidebar" class="sidebar" aria-label="Table of contents">
             <div class="sidebar-scrollbox">
-                <ol class="chapter"><li class="chapter-item expanded affix "><a href="index.html">Introduction</a></li><li class="spacer"></li><li class="chapter-item expanded "><a href="core.html"><strong aria-hidden="true">1.</strong> Core</a></li><li><ol class="section"><li class="chapter-item expanded "><a href="coroutines.html"><strong aria-hidden="true">1.1.</strong> Coroutines</a></li><li class="chapter-item expanded "><a href="memory-management.html"><strong aria-hidden="true">1.2.</strong> Memory Management</a></li></ol></li><li class="chapter-item expanded "><a href="api-ref.html"><strong aria-hidden="true">2.</strong> API</a></li><li><ol class="section"><li class="chapter-item expanded "><a href="api/system.html"><strong aria-hidden="true">2.1.</strong> System</a></li><li class="chapter-item expanded "><a href="api/time.html"><strong aria-hidden="true">2.2.</strong> Time</a></li><li class="chapter-item expanded "><a href="api/audio.html"><strong aria-hidden="true">2.3.</strong> Audio</a></li></ol></li><li class="chapter-item expanded "><a href="api/system/exit.html">ㅤ</a></li><li class="chapter-item expanded affix "><a href="api/system/sleep.html">ㅤ</a></li><li class="chapter-item expanded affix "><a href="api/time/duration.html">ㅤ</a></li><li class="chapter-item expanded affix "><a href="api/time/duration/constructor.html">ㅤ</a></li><li class="chapter-item expanded affix "><a href="api/audio/playsound.html">ㅤ</a></li><li class="chapter-item expanded affix "><a href="api/audio/playmusic.html">ㅤ</a></li></ol>
+                <ol class="chapter"><li class="chapter-item expanded affix "><a href="index.html">Introduction</a></li><li class="spacer"></li><li class="chapter-item expanded "><a href="core.html"><strong aria-hidden="true">1.</strong> Core</a></li><li><ol class="section"><li class="chapter-item expanded "><a href="core/coroutines.html"><strong aria-hidden="true">1.1.</strong> Coroutines</a></li><li class="chapter-item expanded "><a href="memory-management.html"><strong aria-hidden="true">1.2.</strong> Memory Management</a></li></ol></li><li class="chapter-item expanded "><a href="api-ref.html"><strong aria-hidden="true">2.</strong> API</a></li><li><ol class="section"><li class="chapter-item expanded "><a href="api/system.html"><strong aria-hidden="true">2.1.</strong> System</a></li><li class="chapter-item expanded "><a href="api/time.html"><strong aria-hidden="true">2.2.</strong> Time</a></li><li class="chapter-item expanded "><a href="api/audio.html"><strong aria-hidden="true">2.3.</strong> Audio</a></li></ol></li><li class="chapter-item expanded "><a href="api/system/exit.html">ㅤ</a></li><li class="chapter-item expanded affix "><a href="api/system/sleep.html">ㅤ</a></li><li class="chapter-item expanded affix "><a href="api/time/duration.html">ㅤ</a></li><li class="chapter-item expanded affix "><a href="api/time/duration/constructor.html">ㅤ</a></li><li class="chapter-item expanded affix "><a href="api/audio/playsound.html">ㅤ</a></li><li class="chapter-item expanded affix "><a href="api/audio/playmusic.html">ㅤ</a></li></ol>
             </div>
             <div id="sidebar-resize-handle" class="sidebar-resize-handle"></div>
         </nav>
@@ -144,6 +144,78 @@
 <p>The following chapters are much more in-depth than the API reference, and explain the concept behind each method, why it is useful for the engine, some implementation details and other sources if required.</p>
 <p>Some parts of <code>Core</code> are already documented in the API reference (e.g. <a href="./api/time/duration.html">Durations</a>), and some future parts will be too, as they are much simpler, and don't require learning new concepts to create.</p>
 <div style="break-before: page; page-break-before: always;"></div><h1 id="coroutines"><a class="header" href="#coroutines">Coroutines</a></h1>
+<p>Coroutines are functions that have a separate stack and can be paused and resumed, and are available in languages such as C#.</p>
+<p>While C does have coroutines, they are not compatible with C++ exceptions, so I would only use them as a last resort.</p>
+<p>C++ does not present one portable and safe way to set up a new stack, and change the stack pointer, so instead, coroutine emulation is used.</p>
+<p>below is a copy of <code>coroutines.hpp</code></p>
+<pre><code>#pragma once
+
+#define cobegin     _loop = true; while(_loop) { _loop = false; switch(_state) { case 0:
+#define coyield(x)  do { _state = __LINE__; return x; case __LINE__:; } while(0)
+#define coreturn(x) do { _state = 0; return x; } while(0)
+#define cofinish    default: _state = 0; _loop = true; }} return {}
+#define cofinishv   default: _state = 0; _loop = true; }} return
+
+template &lt;typename Return, typename... _Args&gt;
+class Coroutine
+{
+public:
+    Return operator()(_Args... _args)
+    {
+        return run(_args...);
+    }
+
+protected:
+    virtual Return run(_Args... args) = 0;
+    int _state = 0;
+    bool _loop;
+};
+</code></pre>
+<p>The class <code>Coroutine</code> can be inherited from to create a coroutine.</p>
+<p>The macro <code>cobegin</code> is used at the start of a coroutine function</p>
+<p>The macro <code>cofinish</code> is used at the end of a coroutine function</p>
+<p>The macro <code>cofinishv</code> is used at the end of a coroutine function that returns <code>void</code></p>
+<p>The macro <code>coyield(x)</code> is used to pause the function and return a value</p>
+<p>The macro <code>coreturn(x)</code> is used to return from the function and reset <code>_state</code>, allowing the function to be reused</p>
+<p>below is an example of a coroutine:</p>
+<pre><code>#include &lt;system.hpp&gt;
+#include &lt;iostream&gt;
+
+class example_coroutine : public Coroutine&lt;int&gt;
+{   // can accept further template args as coroutine parameters
+protected:
+    int run()
+    {
+        cobegin;
+
+        for(i = 0; i &lt; 10; i++)
+        {
+            coyield(i); // retume control to main and return i
+        }
+
+        cofinish;
+    }
+
+    int i = 0;
+};
+
+int main()
+{
+    example_coroutine ec;
+
+    for(int i = 0; i &lt; 10; i++)
+    {
+        std::cout &lt;&lt; ec() &lt;&lt; &quot;\n&quot;;
+        System::sleep(50_ms);
+    }
+
+    return 0;
+}
+</code></pre>
+<p>In the above example, <code>main</code> calls the coroutine <code>ec</code>, and after increasing <code>i</code> by <code>1</code>, <code>ec</code> returns control to <code>main</code>, where the application sleeps for <code>50ms</code>. This repeats, until the coroutine finishes, allowing control to switch between <code>main</code> and <code>ec</code> without locks.</p>
+<p>Note that all variables that need to persist between calling <code>yield()</code> and the function resuming must be member variables, and initialised directly after <code>cobegin</code>.</p>
+<p>Also note that the coroutine implements the member function <code>run</code>. This is the virtual function provided by the base class, and it must match the coroutine's template. In this example, the template arguments are <code>&lt;int&gt;</code>, so it returns <code>int</code> and has no parameters, so <code>run</code> also must return <code>int</code> and have no parameters. If the coroutine had the parameters <code>&lt;void, int, float&gt;</code>, <code>run</code> would have a signature similar to the following:</p>
+<p><code>void run(int {name}, float {name}) {...}</code></p>
 <div style="break-before: page; page-break-before: always;"></div><h1 id="memory-management"><a class="header" href="#memory-management">Memory Management</a></h1>
 <div style="break-before: page; page-break-before: always;"></div><h1 id="api"><a class="header" href="#api">API</a></h1>
 <p>The API exposes several classes that allow the user to communicate with the engine.</p>
