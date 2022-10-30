@@ -148,28 +148,25 @@
 <p>While C does have coroutines, they are not compatible with C++ exceptions, so I would only use them as a last resort.</p>
 <p>C++ does not present one portable and safe way to set up a new stack, and change the stack pointer, so instead, coroutine emulation is used.</p>
 <p>below is a copy of <code>coroutines.hpp</code></p>
-<pre><code class="language-C++">    #pragma once
-
-    #define cobegin     _loop = true; while(_loop) { _loop = false; switch(_state) { case 0:
-    #define coyield(x)  do { _state = __LINE__; return x; case __LINE__:; } while(0)
-    #define coreturn(x) do { _state = 0; return x; } while(0)
-    #define cofinish    default: _state = 0; _loop = true; }} return {}
-    #define cofinishv   default: _state = 0; _loop = true; }} return
-
-    template &lt;typename Return, typename... _Args&gt;
-    class Coroutine
+<pre><code class="language-C++">#pragma once
+#define cobegin     _loop = true; while(_loop) { _loop = false; switch(_state) { case 0:
+#define coyield(x)  do { _state = __LINE__; return x; case __LINE__:; } while(0)
+#define coreturn(x) do { _state = 0; return x; } while(0)
+#define cofinish    default: _state = 0; _loop = true; }} return {}
+#define cofinishv   default: _state = 0; _loop = true; }} return
+template &lt;typename Return, typename... _Args&gt;
+class Coroutine
+{
+public:
+    Return operator()(_Args... _args)
     {
-    public:
-        Return operator()(_Args... _args)
-        {
-            return run(_args...);
-        }
-
-    protected:
-        virtual Return run(_Args... args) = 0;
-        int _state = 0;
-        bool _loop;
-    };
+        return run(_args...);
+    }
+protected:
+    virtual Return run(_Args... args) = 0;
+    int _state = 0;
+    bool _loop;
+};
 
 The class `Coroutine` can be inherited from to create a coroutine.
 
