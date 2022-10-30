@@ -178,39 +178,39 @@ protected:
 <p>The macro <code>coyield(x)</code> is used to pause the function and return a value</p>
 <p>The macro <code>coreturn(x)</code> is used to return from the function and reset <code>_state</code>, allowing the function to be reused</p>
 <p>below is an example of a coroutine:</p>
-<pre><code class="language-C++">    #include &lt;system.hpp&gt;
-    #include &lt;iostream&gt;
+<pre><code class="language-C++">#include &lt;system.hpp&gt;
+#include &lt;iostream&gt;
 
-    class example_coroutine : public Coroutine&lt;int&gt;
-    {   // can accept further template args as coroutine parameters
-    protected:
-        int run()
-        {
-            cobegin;
-
-            for(i = 0; i &lt; 10; i++)
-            {
-                coyield(i); // retume control to main and return i
-            }
-
-            cofinish;
-        }
-
-        int i = 0;
-    };
-
-    int main()
+class example_coroutine : public Coroutine&lt;int&gt;
+{   // can accept further template args as coroutine parameters
+protected:
+    int run()
     {
-        example_coroutine ec;
+        cobegin;
 
-        for(int i = 0; i &lt; 10; i++)
+        for(i = 0; i &lt; 10; i++)
         {
-            std::cout &lt;&lt; ec() &lt;&lt; &quot;\n&quot;;
-            System::sleep(50_ms);
+            coyield(i); // retume control to main and return i
         }
 
-        return 0;
+        cofinish;
     }
+
+    int i = 0;
+};
+
+int main()
+{
+    example_coroutine ec;
+
+    for(int i = 0; i &lt; 10; i++)
+    {
+        std::cout &lt;&lt; ec() &lt;&lt; &quot;\n&quot;;
+        System::sleep(50_ms);
+    }
+
+    return 0;
+}
 </code></pre>
 <p>In the above example, <code>main</code> calls the coroutine <code>ec</code>, and after increasing <code>i</code> by <code>1</code>, <code>ec</code> returns control to <code>main</code>, where the application sleeps for <code>50ms</code>. This repeats, until the coroutine finishes, allowing control to switch between <code>main</code> and <code>ec</code> without locks.</p>
 <p>Note that all variables that need to persist between calling <code>yield()</code> and the function resuming must be member variables, and initialised directly after <code>cobegin</code>.</p>
