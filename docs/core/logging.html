@@ -207,7 +207,7 @@ Log::LogCapture* Log::capture()
 	return captures.back();
 }
 
-void handle_capture(const std::string&amp; message, const Flags&amp; flags, const Channel&amp; channel)
+void handle_capture(const std::string&amp; message, const Log::Flags&amp; flags, const Log::Channel&amp; channel)
 {
 	for(auto _capture : captures)
 	{
@@ -239,10 +239,10 @@ std::string get_time_fmt()
 	return s;
 }
 
-void log(const Log::Channel&amp; channel, const std::string&amp; message, const Flags&amp; flags);
-void log(const Log::Channel&amp; channel, const char* message, const Flags&amp; flags);
+void log(const Log::Channel&amp; channel, const std::string&amp; message, const Log::Flags&amp; flags);
+void log(const Log::Channel&amp; channel, const char* message, const Log::Flags&amp; flags);
 
-void Log::fatal(const std::string&amp; message, const Flags&amp; flags)
+void Log::fatal(const std::string&amp; message, const Log::Flags&amp; flags)
 {
 	log(Log::Channel::Fatal, message, flags);
 }
@@ -252,52 +252,52 @@ void Log::fatal(const char* message, const Flags&amp; flags)
 	log(Channel::Fatal, message, flags);
 }
 
-void Log::error(const std::string&amp; message, const Flags&amp; flags)
+void Log::error(const std::string&amp; message, const Log::Flags&amp; flags)
 {
 	log(Log::Channel::Error, message, flags);
 }
 
-void Log::error(const char* message, const Flags&amp; flags)
+void Log::error(const char* message, const Log::Flags&amp; flags)
 {
 	log(Channel::Error, message, flags);
 }
 
-void Log::warn(const std::string&amp; message, const Flags&amp; flags)
+void Log::warn(const std::string&amp; message, const Log::Flags&amp; flags)
 {
 	log(Log::Channel::Warn, message, flags);
 }
 
-void Log::warn(const char* message, const Flags&amp; flags)
+void Log::warn(const char* message, const Log::Flags&amp; flags)
 {
 	log(Channel::Warn, message, flags);
 }
 
-void Log::info(const std::string&amp; message, const Flags&amp; flags)
+void Log::info(const std::string&amp; message, const Log::Flags&amp; flags)
 {
 	log(Log::Channel::Info, message, flags);
 }
 
-void Log::info(const char* message, const Flags&amp; flags)
+void Log::info(const char* message, const Log::Flags&amp; flags)
 {
 	log(Channel::Info, message, flags);
 }
 
-void Log::debug(const std::string&amp; message, const Flags&amp; flags)
+void Log::debug(const std::string&amp; message, const Log::Flags&amp; flags)
 {
 	log(Log::Channel::Debug, message, flags);
 }
 
-void Log::debug(const char* message, const Flags&amp; flags)
+void Log::debug(const char* message, const Log::Flags&amp; flags)
 {
 	log(Channel::Debug, message, flags);
 }
 
-void Log::trace(const std::string&amp; message, const Flags&amp; flags)
+void Log::trace(const std::string&amp; message, const Log::Flags&amp; flags)
 {
 	log(Log::Channel::Trace, message, flags);
 }
 
-void Log::trace(const char* message, const Flags&amp; flags)
+void Log::trace(const char* message, const Log::Flags&amp; flags)
 {
 	log(Log::Channel::Trace, message, flags);
 }
@@ -318,25 +318,25 @@ void Log::trace(const char* message, const Flags&amp; flags)
 	// error
 }
 
-void log(const Log::Channel&amp; channel, const std::string&amp; message, const Flags&amp; flags)
+void log(const Log::Channel&amp; channel, const std::string&amp; message, const Log::Flags&amp; flags)
 {
 	std::string msg = get_colour_fmt(channel);
-	if(flags &amp; Flags::ShowTime) msg = get_time_fmt() + &quot; &quot;;
+	if(flags &amp; Log::Flags::ShowTime) msg = get_time_fmt() + &quot; &quot;;
 	msg += get_channel_fmt(channel);
 	msg += message;
 	log_mux.lock();
-	if(flags &amp; Flags::StdOut)
+	if(flags &amp; Log::Flags::StdOut)
 	{
 		std::cout &lt;&lt; message &lt;&lt; &quot;\n&quot;;
 	}
-	if(flags &amp; Flags::CanCapture)
+	if(flags &amp; Log::Flags::CanCapture)
 	{
 		handle_capture(message, flags, channel);
 	}
 	log_mux.unlock();
 }
 
-void log(const Log::Channel&amp; channel, const char* message, const Flags&amp; flags)
+void log(const Log::Channel&amp; channel, const char* message, const Log::Flags&amp; flags)
 {
 	std::string msg = message;
 	log(channel, msg, flags);
@@ -358,14 +358,14 @@ void log(const Log::Channel&amp; channel, const char* message, const Flags&amp; 
 	// error
 }
 
-void log(const Log::Channel&amp; channel, const std::string&amp; message, const Flags&amp; flags)
+void log(const Log::Channel&amp; channel, const std::string&amp; message, const Log::Flags&amp; flags)
 {
 	std::string msg = &quot;&quot;;
-	if(flags &amp; Flags::ShowTime) msg = get_time_fmt() + &quot; &quot;;
+	if(flags &amp; Log::Flags::ShowTime) msg = get_time_fmt() + &quot; &quot;;
 	msg += get_channel_fmt(channel);
 	msg += message;
 	log_mux.lock();
-	if(flags &amp; Flags::StdOut)
+	if(flags &amp; Log::Flags::StdOut)
 	{
 		msg += &quot;\n&quot;;
 		HANDLE h_console = GetStdHandle(STD_OUTPUT_HANDLE);
@@ -373,14 +373,14 @@ void log(const Log::Channel&amp; channel, const std::string&amp; message, const 
 		LPDWORD num_written = 0;
 		WriteConsoleA(h_console, msg.c_str(), (DWORD)msg.size(), num_written, 0);
 	}
-	if(flags &amp; Flags::CanCapture)
+	if(flags &amp; Log::Flags::CanCapture)
 	{
 		handle_capture(message, flags, channel);
 	}
 	log_mux.unlock();
 }
 
-void log(const Log::Channel&amp; channel, const char* message, const Flags&amp; flags)
+void log(const Log::Channel&amp; channel, const char* message, const Log::Flags&amp; flags)
 {
 	std::string msg = message;
 	log(channel, msg, flags);
