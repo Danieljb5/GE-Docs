@@ -134,7 +134,260 @@
 
                 <div id="content" class="content">
                     <main>
-                        
+                        <h1 id="logging"><a class="header" href="#logging">Logging</a></h1>
+<p>I would like to create a more versatile logging system than the default <code>std::cout</code> and <code>printf</code>, which means I need to be able to capture and/or redirect the output, add colours and formats, and support different logging levels, and be thread-safe. It will also need different backends to support Linux and Windows.</p>
+<h2 id="the-interface"><a class="header" href="#the-interface">The Interface</a></h2>
+<p>The interface should be as straightforward as possible, with all functions inside the namespace <code>Log</code>:</p>
+<pre><code class="language-C++">namespace Log
+{
+	enum Channel
+	{
+		Fatal, Error, Warn, Info, Debug, Trace
+	};
+
+	enum Flags
+	{
+		CanCapture = 1,
+		StdOut = 2,
+		ShowTime = 4,
+		// other options here
+		Default = CanCapture | StdOut
+	};
+
+	struct LogCapture
+	{
+		...
+	};
+
+	LogCapture* capture();
+
+	void fatal(const std::string&amp; message, const Flags&amp; flags = Flags::Default);
+	void fatal(const char* message, const Flags&amp; flags = Flags::Default);
+	void error(const std::string&amp; message, const Flags&amp; flags = Flags::Default);
+	void error(const char* message, const Flags&amp; flags = Flags::Default);
+	void warn(const std::string&amp; message, const Flags&amp; flags = Flags::Default);
+	void warn(const char* message, const Flags&amp; flags = Flags::Default);
+	void info(const std::string&amp; message, const Flags&amp; flags = Flags::Default);
+	void info(const char* message, const Flags&amp; flags = Flags::Default);
+	void debug(const std::string&amp; message, const Flags&amp; flags = Flags::Default);
+	void debug(const char* message, const Flags&amp; flags = Flags::Default);
+	void trace(const std::string&amp; message, const Flags&amp; flags = Flags::Default);
+	void trace(const char* message, const Flags&amp; flags = Flags::Default);
+}
+</code></pre>
+<p>Now we have a way to send a message to any logging level, and we can internally disable <code>debug</code> and <code>trace</code> levels. We also have some flags that let us change how and where the message is sent. Now on to <code>LogCapture</code>:</p>
+<pre><code class="language-C++">namespace Log
+{
+	...
+	
+	struct LogCapture
+	{
+		void stop();
+		void pause();
+		void resume();
+		void (*callback)(const std::string&amp; message, const Flags&amp; flags, const Channel&amp; channel) = nullptr;
+		void capture(const std::string&amp; message, const Flags&amp; flags, const Channel&amp; channel);
+	};
+
+	LogCapture* capture();
+
+	...
+}
+</code></pre>
+<p>The <code>LogCapture</code> struct simply acts as a passthrough to a user callback, with a stop function to disable the capture and destroy it, as well as pause and resume to stop without destroying the capture.</p>
+<h2 id="the-backend"><a class="header" href="#the-backend">The Backend</a></h2>
+<p>Linux and Windows both have separate implementations, so they will be shown separately. Below is the code the two have in common:</p>
+<pre><code class="language-C++">
+std::mutex log_mux;
+std::vector&lt;Log::LogCapture*&gt; captures;
+
+Log::LogCapture* Log::capture()
+{
+	captures.push_back(new Log::LogCapture());
+	return captures.back();
+}
+
+void handle_capture(const std::string&amp; message, const Flags&amp; flags, const Channel&amp; channel)
+{
+	for(auto _capture : captures)
+	{
+		_capture-&gt;capture(message, flags, channel);
+	}
+}
+
+std::string get_channel_fmt(const Log::Channel&amp; channel)
+{
+	switch(channel)
+	{
+		case Fatal: return &quot;[Fatal] &quot;;
+		case Error: return &quot;[Error] &quot;;
+		case Warn:  return &quot;[Warn]  &quot;;
+		case Info:  return &quot;[Info]  &quot;;
+		case Debug: return &quot;[Debug] &quot;;
+		case Trace: return &quot;[Trace] &quot;;
+		default: break;
+	}
+	// error
+}
+
+std::string get_time_fmt()
+{
+	auto now = std::chrono::system_clock::to_time_t(std::chrono::system_clock::now());
+	std::string s(50, '\0');
+	uint64_t size = std::strftime(&amp;s[0], s.size(), &quot;%d/%m/%Y %H:%M:%S&quot;, std::localtime(&amp;now));
+	s.resize(size);
+	return s;
+}
+
+void log(const Log::Channel&amp; channel, const std::string&amp; message, const Flags&amp; flags);
+void log(const Log::Channel&amp; channel, const char* message, const Flags&amp; flags);
+
+void Log::fatal(const std::string&amp; message, const Flags&amp; flags)
+{
+	log(Log::Channel::Fatal, message, flags);
+}
+
+void Log::fatal(const char* message, const Flags&amp; flags)
+{
+	log(Channel::Fatal, message, flags);
+}
+
+void Log::error(const std::string&amp; message, const Flags&amp; flags)
+{
+	log(Log::Channel::Error, message, flags);
+}
+
+void Log::error(const char* message, const Flags&amp; flags)
+{
+	log(Channel::Error, message, flags);
+}
+
+void Log::warn(const std::string&amp; message, const Flags&amp; flags)
+{
+	log(Log::Channel::Warn, message, flags);
+}
+
+void Log::warn(const char* message, const Flags&amp; flags)
+{
+	log(Channel::Warn, message, flags);
+}
+
+void Log::info(const std::string&amp; message, const Flags&amp; flags)
+{
+	log(Log::Channel::Info, message, flags);
+}
+
+void Log::info(const char* message, const Flags&amp; flags)
+{
+	log(Channel::Info, message, flags);
+}
+
+void Log::debug(const std::string&amp; message, const Flags&amp; flags)
+{
+	log(Log::Channel::Debug, message, flags);
+}
+
+void Log::debug(const char* message, const Flags&amp; flags)
+{
+	log(Channel::Debug, message, flags);
+}
+
+void Log::trace(const std::string&amp; message, const Flags&amp; flags)
+{
+	log(Log::Channel::Trace, message, flags);
+}
+
+void Log::trace(const char* message, const Flags&amp; flags)
+{
+	log(Log::Channel::Trace, message, flags);
+}
+</code></pre>
+<p>Linux:</p>
+<pre><code class="language-C++">std::string get_colour_fmt(const Log::Channel&amp; channel)
+{
+	switch(channel)
+	{
+		case Fatal: return &quot;\033[38;5;0;48;5;9m&quot;;
+		case Error: return &quot;\033[38;5;9;48;5;0m&quot;;
+	    case Warn:  return &quot;\033[38;5;11;48;5;0m&quot;;
+	    case Info:  return &quot;\033[38;5;10;48;5;0m&quot;;
+	    case Debug: return &quot;\033[38;5;12;48;5;0m&quot;;
+	    case Trace: return &quot;\033[38;5;8;48;5;0m&quot;;
+		default: break;
+	}
+	// error
+}
+
+void log(const Log::Channel&amp; channel, const std::string&amp; message, const Flags&amp; flags)
+{
+	std::string msg = get_colour_fmt(channel);
+	if(flags &amp; Flags::ShowTime) msg = get_time_fmt() + &quot; &quot;;
+	msg += get_channel_fmt(channel);
+	msg += message;
+	log_mux.lock();
+	if(flags &amp; Flags::StdOut)
+	{
+		std::cout &lt;&lt; message &lt;&lt; &quot;\n&quot;;
+	}
+	if(flags &amp; Flags::CanCapture)
+	{
+		handle_capture(message, flags, channel);
+	}
+	log_mux.unlock();
+}
+
+void log(const Log::Channel&amp; channel, const char* message, const Flags&amp; flags)
+{
+	std::string msg = message;
+	log(channel, msg, flags);
+}
+</code></pre>
+<p>Windows:</p>
+<pre><code class="language-C++">uint8_t get_colour_fmt(const Log::Channel&amp; channel)
+{
+	switch(channel)
+	{
+		case Fatal: return 64;
+		case Error: return 4;
+		case Warn:  return 6;
+		case Info:  return 2;
+		case Debug: return 1;
+		case Trace: return 8;
+		default: break;
+	}
+	// error
+}
+
+void log(const Log::Channel&amp; channel, const std::string&amp; message, const Flags&amp; flags)
+{
+	std::string msg = &quot;&quot;;
+	if(flags &amp; Flags::ShowTime) msg = get_time_fmt() + &quot; &quot;;
+	msg += get_channel_fmt(channel);
+	msg += message;
+	log_mux.lock();
+	if(flags &amp; Flags::StdOut)
+	{
+		msg += &quot;\n&quot;;
+		HANDLE h_console = GetStdHandle(STD_OUTPUT_HANDLE);
+		SetConsoleTextAttribute(h_console, get_colour_fmt(channel));
+		LPDWORD num_written = 0;
+		WriteConsoleA(h_console, msg.c_str(), (DWORD)msg.size(), num_written, 0);
+	}
+	if(flags &amp; Flags::CanCapture)
+	{
+		handle_capture(message, flags, channel);
+	}
+	log_mux.unlock();
+}
+
+void log(const Log::Channel&amp; channel, const char* message, const Flags&amp; flags)
+{
+	std::string msg = message;
+	log(channel, msg, flags);
+}
+</code></pre>
+<p>In the Linux implementation, we use escape codes to apply the colour to the message, and then fall back to <code>std::cout</code> to actually log the message. In the Windows implementation, we use the Windows API to set the console colour and then log the message.</p>
+
                     </main>
 
                     <nav class="nav-wrapper" aria-label="Page navigation">
